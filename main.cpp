@@ -39,7 +39,7 @@ class Polynode {
         //-- Arithmetic Operator
         Polynode operator + (Polynode &);
         //-- Assignment Operator
-        Polynode operator = (Polynode &);
+        Polynode operator = (const Polynode &);
 };
 
 //-- Polynomial Class
@@ -69,7 +69,7 @@ class Polynomial : public Polynode {
         //-- Phrase Size Returner
         int getSize();
         //-- Output Stream Operator
-        friend std::ostream &operator << (std::ostream &, Polynomial &);
+        friend std::ostream &operator << (std::ostream &, Polynomial);
         //-- Input Stream Operator
         friend std::istream &operator >> (std::istream &, Polynomial &);
         //-- Arithmetic Operator
@@ -133,7 +133,7 @@ std::ostream &operator << (std::ostream &output, Polynode &polynode) {
         if (polynode.getExp() == 0) {
             output << polynode.getCoef(); 
         } else if (polynode.getExp() == 1) {
-            output << polynode.getCoef() << "x";
+            output << polynode.getCoef();
         } else {
             output << polynode.getCoef() << "x^" << polynode.getExp();
         }
@@ -173,9 +173,10 @@ Polynode Polynode::operator + (Polynode &rvalue) {
 }
 
 //-- Assignment Operator
-Polynode Polynode::operator = (Polynode &rvalue) {
+Polynode Polynode::operator = (const Polynode &rvalue) {
     this->coef = rvalue.coef;
     this->exp = rvalue.exp;
+    return *this;
 }
 
 //--------------------------------------------------------------------------------------------
@@ -210,7 +211,6 @@ void Polynomial::Append(Polynode &input) {
     std::cin >> input;
     phrase.push_back(input);
     size = phrase.size();
-    Sort(Bubble);
 }
 
 //-- Calculates Polynomial with Given Input
@@ -222,7 +222,13 @@ int Polynomial::calculateWith(double &input) {
     double answer = 0;
     for (int i = 0; i < phrase.size(); i++) {
         answer += (phrase[i].getCoef() * pow(input, phrase[i].getExp()));
+        if (i > 0) {
+            std::cout << " + ";
+        }
+        std::cout << phrase[i].getCoef() * pow(input, phrase[i].getExp());
     }
+    std::cout << std::endl;
+    std::cout << "-->" << std::endl;
     return answer;
 }
 
@@ -288,7 +294,7 @@ void Polynomial::Sort(int algorithm) {
 //-- Returns Maximum Avalible Term in Polynomial
 Polynode Polynomial::maxTerm() {
     Sort(Bubble);
-    return phrase[0];
+    return phrase.at(0);
 }
 
 //-- Returns Maximum Avalible Exponant in Polynomial
@@ -303,21 +309,42 @@ int Polynomial::getSize() {
 }
 
 //-- Output Stream Operator
-std::ostream &operator << (std::ostream &output, Polynomial &polynomial) {
-    bool flag = false;
+std::ostream &operator << (std::ostream &output, Polynomial polynomial) {
+    bool flag = false, hasSign = false;
+    int coef, size = polynomial.size;
+    // for (int i = 0; i < size; i++) {
+    //     for (int j = 0; j < size; j++) {
+    //         if (polynomial.phrase[j] == polynomial.phrase[i]) {
+    //             polynomial.phrase[i] = polynomial.phrase[i] + polynomial.phrase[j];
+    //             polynomial.phrase.erase(polynomial.phrase.begin() + j);
+    //             polynomial.size--;
+    //         }
+    //     }
+    // }
     for (int i = 0; i < polynomial.phrase.size(); i++) {
-        if (polynomial.phrase[i].getCoef() > 0 && i > 0) {
+        coef = polynomial.phrase[i].getCoef();
+        if (coef > 0 && i > 0) {
             output << " + ";
             flag = true;
-        } else if (polynomial.phrase[i].getCoef() < 0) {
-            output << " ";
+        } else if (coef < 0) {
+            if (polynomial.maxTerm() == polynomial.phrase[i]) {
+                output << "- ";
+            } else {
+                output << " - ";
+            }
+            polynomial.phrase[i].setCoef(coef *= -1);
+            hasSign = true;
             flag = true;
         } else if (polynomial.phrase[i].getCoef() == 0) {
             //-- Doesn't Show Polynode
             flag = false;
         }
-        if (flag == true) {
+        if (flag == true || i == 0) {
             output << polynomial.phrase[i];
+            if (hasSign) {
+                polynomial.phrase[i].setCoef(coef *= -1);
+                hasSign = false;
+            }
         }
     }
     return output;
@@ -345,35 +372,44 @@ int main() {
         //-- Wrong Option Process
         if (wrongOption == true) {
             //-- Clear Terminal
-            std::cout << "\x1B[2J\x1B[H" << std::endl;
+            std::cout << "\x1B[2J\x1B[H";
             std::cout << "--- Wrong Option ! Enter Your Choice Again !" << std::endl;
             wrongOption = false;
         } else {
             //-- Clear Terminal
-            std::cout << "\x1B[2J\x1B[H" << std::endl;
+            std::cout << "\x1B[2J\x1B[H";
             std::cout << std::endl;
         }
         //-- Show Polynomial Status
         if (phrase.getSize() == 0) {
-            std::cout << "Your Polynode is Empty !" << std::endl;
+            std::cout << "Your Polynode is \033[0;33mEmpty\033[0m!" << std::endl << std::endl;
         } else {
             std::cout << "Your Polynomial has \033[0;33m" << phrase.getSize() << "\033[0m Polynodes." << std::endl;
+            std::cout << "\033[0;33m- Polynomial :\033[0m " << phrase << std::endl;
         }
         //-- Options :
-        std::cout << "Options :" << std::endl;
+        std::cout << "\033[0;35mOptions :\033[0m" << std::endl;
         //-1 : Add Polynode
-        std::cout << "1- Add Polynode" << std::endl;
+        std::cout << "\033[0;33m1-\033[0m Add Polynode" << std::endl;
         //-2: Calculates Polynomial with Given Input
-        std::cout << "2- Calculates Polynomial with Given Input" << std::endl;
+        std::cout << "\033[0;33m2-\033[0m Calculates Polynomial with Given Input" << std::endl;
         //-3 : Show Sorted Polynomial
-        std::cout << "3- Show Sorted Polynomial" << std::endl;
+        std::cout << "\033[0;33m3-\033[0m Show Sorted Polynomial" << std::endl;
         //-4 : Show Biggest Term
-        std::cout << "4- Show Biggest Term in Polynomial" << std::endl;
+        std::cout << "\033[0;33m4-\033[0m Show Biggest Term in Polynomial" << std::endl;
         //-5 : Show Polynomial's Degree
-        std::cout << "5- Show Polynomial's Degree" << std::endl;
+        std::cout << "\033[0;33m5-\033[0m Show Polynomial's Degree" << std::endl;
+        //-6 : Add Two Polynodes
+        std::cout << "\033[0;33m6-\033[0m Add Two Polynodes" << std::endl;
+        //-7 : Set Polynode
+        std::cout << "\033[0;33m7-\033[0m Set Polynode from Another Polynode" << std::endl;
         //-- Choice
         int choice = 0;
-        std::cout << std::endl << "Your Choice : "; std::cin >> choice;
+        std::cout << std::endl << "\033[0;35mYour Choice :\033[0m "; std::cin >> choice;
+        if (phrase.getSize() == 0 && choice != 1) {
+            std::cout << "- You Should Add at Least One Polynode" << std::endl;
+            choice = 1;
+        }
         switch (choice) {
             case 1: {
                 Polynode input;
@@ -384,22 +420,22 @@ int main() {
                 double input;
                 phrase.Sort(Bubble);
                 std::cout << "- Enter Input : "; std::cin >> input;
-                std::cout << "  x = " << input << " --> " << phrase << std::endl;
+                std::cout << "-- x = " << input << " --> " << phrase << std::endl;
                 std::cout << "-- Answer : " << phrase.calculateWith(input) << std::endl;
             };
             case 3: {
                 phrase.Sort(Bubble);
-                std::cout << phrase << std::endl;
+                std::cout << "- Polynomial : " << phrase << std::endl;
                 break;
             };
             case 4: {
-                phrase.Sort(Bubble);
-                
+                Polynode output;
+                output = phrase.maxTerm();
+                std::cout << "Maximum Term is : " << output << std::endl;
                 break;
             };
             case 5: {
-                phrase.Sort(Bubble);
-                std::cout << "Polynomial's Degree is : " << phrase.getExp();
+                std::cout << "Polynomial's Degree is : " << phrase.maxExp() << std::endl;
                 break;
             };
             default: {
