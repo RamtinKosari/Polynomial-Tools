@@ -228,7 +228,6 @@ int Polynomial::calculateWith(double &input) {
         if (i > 0) {
             std::cout << " + ";
         }
-        std::cout << phrase[i].getCoef() * pow(input, phrase[i].getExp());
     }
     return answer;
 }
@@ -356,7 +355,150 @@ std::ostream &operator << (std::ostream &output, Polynomial polynomial) {
 
 //-- Input Stream Operator
 std::istream &operator >> (std::istream &input, Polynomial &polynomial) {
-
+    //-- flags
+    bool wrongOption = false, wasWrong = false, firstStep = true;
+    bool continueChoice = true;
+    while (true) {
+        //-- Wrong Option Process
+        if (wrongOption == true) {
+            //-- Clear Terminal
+            std::cout << "\x1B[2J\x1B[H";
+            std::cout << "\033[0;31mWrong Option !\033[0m Enter Your Choice Again !" << std::endl;
+            wasWrong = true;
+            wrongOption = false;
+        } else {
+            //-- Clear Terminal
+            std::cout << "\x1B[2J\x1B[H";
+            std::cout << std::endl;
+        }
+        //-- Show Polynomial Status
+        if (polynomial.getSize() == 0) {
+            std::cout << "Your Polynode is \033[0;33mEmpty\033[0m!" << std::endl << std::endl;
+        } else {
+            polynomial.Sort(Bubble);
+            std::cout << "Your Polynomial has \033[0;33m" << polynomial.getSize() << "\033[0m Polynodes." << std::endl;
+            std::cout << std::endl;
+        }
+        //-- Options :
+        std::cout << "\033[0;35mOptions :\033[0m" << std::endl;
+        //-1 : Add Polynode
+        std::cout << "\033[0;33m1-\033[0m Add Polynode" << std::endl;
+        //-2: Calculates Polynomial with Given Input
+        std::cout << "\033[0;33m2-\033[0m Calculates Polynomial with Given Input" << std::endl;
+        //-3 : Show Sorted Polynomial
+        std::cout << "\033[0;33m3-\033[0m Show Sorted Polynomial" << std::endl;
+        //-4 : Show Biggest Term
+        std::cout << "\033[0;33m4-\033[0m Show Biggest Term in Polynomial" << std::endl;
+        //-5 : Show Polynomial's Degree
+        std::cout << "\033[0;33m5-\033[0m Show Polynomial's Degree" << std::endl;
+        //-6 : Add Two Polynomial
+        std::cout << "\033[0;33m6-\033[0m Add Another Polynomial" << std::endl;
+        //-7 : Set Polynode
+        std::cout << "\033[0;33m7-\033[0m Set Polynode by Index" << std::endl;
+        //-- Choice
+        int choice = 0;
+        std::cout << std::endl << "\033[0;35mYour Choice :\033[0m "; std::cin >> choice;
+        if (polynomial.getSize() == 0 && choice != 1 && wasWrong == true) {
+            std::cout << "- You Should Add at Least One Polynode" << std::endl;
+            choice = 1;
+        } else if (firstStep) {
+            std::cout << "- You Should Add at Least One Polynode" << std::endl;
+            choice = 1;
+            firstStep = false;
+        }
+        switch (choice) {
+            case 1: {
+                Polynode inputPolynode;
+                polynomial.Append(inputPolynode);
+                break;
+            };
+            case 2: {
+                double inputChoice;
+                polynomial.Sort(Bubble);
+                std::cout << "- Enter Input : "; std::cin >> inputChoice;
+                std::cout << "-- x = " << inputChoice << " --> " << polynomial << std::endl;
+                std::cout << "-- Answer : " << polynomial.calculateWith(inputChoice) << std::endl;
+                break;
+            };
+            case 3: {
+                polynomial.Sort(Bubble);
+                std::cout << "- Polynomial : " << polynomial << std::endl;
+                break;
+            };
+            case 4: {
+                Polynode output;
+                output = polynomial.maxTerm();
+                std::cout << "- Maximum Term is : " << output << std::endl;
+                break;
+            };
+            case 5: {
+                std::cout << "- Polynomial's Degree is : " << polynomial.maxExp() << std::endl;
+                break;
+            };
+            case 6: {
+                std::cout << "- Add Term to New Polynomial, in The End Will be Added to Main Polynomial :" << std::endl;
+                std::vector<Polynode> polynode;
+                polynode.resize(0);
+                bool status = true;
+                std::string inputChoice;
+                Polynode tmp;
+                while (true) {
+                    if (status == true) {
+                        std::cin >> tmp;
+                        polynode.push_back(tmp);
+                        std::cout << "- Continue Adding ? (Y/N) : "; std::cin >> inputChoice; 
+                        if (inputChoice == "y" || inputChoice == "Y") {
+                            status = true; 
+                        } else if (inputChoice == "n" || inputChoice == "N"){
+                            status = false;
+                            break;
+                        }
+                    }
+                }
+                Polynomial polynomial(polynode, polynode.size());
+                polynomial = polynomial + polynomial;
+                break;
+            };
+            case 7: {
+                std::cout << "- Polynomial is : " << polynomial << std::endl;
+                std::cout << "                    ";
+                for (int i = 0; i < polynomial.getSize(); i++) {
+                    std::cout << i << "      ";
+                }
+                int index;
+                std::cout << std::endl;
+                std::cout << "- Choose Between Iterators : "; std::cin >> index;
+                std::cout << "Polynode " << index << " is Selected" << std::endl;
+                polynomial.setPolynode(index);
+                std::cout << "Polynode [" << index << "] Replaced Successfully !" << std::endl;
+                break;
+            }
+            default: {
+                wrongOption = true;
+            };
+        };
+        if (wrongOption == false) {
+            std::string inputChoice;
+            while (true) {
+                std::cout << "Continue ? (Y/N) : "; std::cin >> inputChoice;
+                if (inputChoice == "y" || inputChoice == "Y") {
+                    continueChoice = true;
+                    break;
+                } else if (inputChoice == "n" || inputChoice == "N"){
+                    continueChoice = false;
+                    break;
+                } else {
+                    std::cout << "- Wrong Answer !" << std::endl;
+                }
+            }
+            if (continueChoice == true) {
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
+    return input;
 }
 
 //-- Arithmetic Operator
@@ -382,144 +524,7 @@ Polynode Polynomial::getPolynode(int &index) {
 int main() {
     //-- Menu
     Polynomial phrase;
-    //-- flag
-    bool wrongOption = false;
-    bool continueChoice = true;
-    while (true) {
-        //-- Wrong Option Process
-        if (wrongOption == true) {
-            //-- Clear Terminal
-            std::cout << "\x1B[2J\x1B[H";
-            std::cout << "\033[0;31mWrong Option !\033[0m Enter Your Choice Again !" << std::endl;
-            wrongOption = false;
-        } else {
-            //-- Clear Terminal
-            std::cout << "\x1B[2J\x1B[H";
-            std::cout << std::endl;
-        }
-        //-- Show Polynomial Status
-        if (phrase.getSize() == 0) {
-            std::cout << "Your Polynode is \033[0;33mEmpty\033[0m!" << std::endl << std::endl;
-        } else {
-            phrase.Sort(Bubble);
-            std::cout << "Your Polynomial has \033[0;33m" << phrase.getSize() << "\033[0m Polynodes." << std::endl;
-            std::cout << std::endl;
-        }
-        //-- Options :
-        std::cout << "\033[0;35mOptions :\033[0m" << std::endl;
-        //-1 : Add Polynode
-        std::cout << "\033[0;33m1-\033[0m Add Polynode" << std::endl;
-        //-2: Calculates Polynomial with Given Input
-        std::cout << "\033[0;33m2-\033[0m Calculates Polynomial with Given Input" << std::endl;
-        //-3 : Show Sorted Polynomial
-        std::cout << "\033[0;33m3-\033[0m Show Sorted Polynomial" << std::endl;
-        //-4 : Show Biggest Term
-        std::cout << "\033[0;33m4-\033[0m Show Biggest Term in Polynomial" << std::endl;
-        //-5 : Show Polynomial's Degree
-        std::cout << "\033[0;33m5-\033[0m Show Polynomial's Degree" << std::endl;
-        //-6 : Add Two Polynomial
-        std::cout << "\033[0;33m6-\033[0m Add Another Polynomial" << std::endl;
-        //-7 : Set Polynode
-        std::cout << "\033[0;33m7-\033[0m Set Polynode by Index" << std::endl;
-        //-- Choice
-        int choice = 0;
-        std::cout << std::endl << "\033[0;35mYour Choice :\033[0m "; std::cin >> choice;
-        if (phrase.getSize() == 0 && choice != 1) {
-            std::cout << "- You Should Add at Least One Polynode" << std::endl;
-            choice = 1;
-        }
-        switch (choice) {
-            case 1: {
-                Polynode input;
-                phrase.Append(input);
-                break;
-            };
-            case 2: {
-                double input;
-                phrase.Sort(Bubble);
-                std::cout << "- Enter Input : "; std::cin >> input;
-                std::cout << "-- x = " << input << " --> " << phrase << std::endl;
-                std::cout << "-- Answer : " << phrase.calculateWith(input) << std::endl;
-            };
-            case 3: {
-                phrase.Sort(Bubble);
-                std::cout << "- Polynomial : " << phrase << std::endl;
-                break;
-            };
-            case 4: {
-                Polynode output;
-                output = phrase.maxTerm();
-                std::cout << "- Maximum Term is : " << output << std::endl;
-                break;
-            };
-            case 5: {
-                std::cout << "- Polynomial's Degree is : " << phrase.maxExp() << std::endl;
-                break;
-            };
-            case 6: {
-                std::cout << "- Add Term to New Polynomial, in The End Will be Added to Main Polynomial :" << std::endl;
-                std::vector<Polynode> polynode;
-                polynode.resize(0);
-                bool status = true;
-                std::string input;
-                Polynode tmp;
-                while (true) {
-                    if (status == true) {
-                        std::cin >> tmp;
-                        polynode.push_back(tmp);
-                        std::cout << "- Continue Adding ? (Y/N) : "; std::cin >> input; 
-                        if (input == "y" || input == "Y") {
-                            status = true; 
-                        } else if (input == "n" || input == "N"){
-                            status = false;
-                            break;
-                        }
-                    }
-                }
-                Polynomial polynomial(polynode, polynode.size());
-                phrase = phrase + polynomial;
-                // std::cin >> phrase;
-                break;
-            };
-            case 7: {
-                std::cout << "- Polynomial is : " << phrase << std::endl;
-                std::cout << "                    ";
-                for (int i = 0; i < phrase.getSize(); i++) {
-                    std::cout << i << "      ";
-                }
-                int index;
-                std::cout << std::endl;
-                std::cout << "- Choose Between Iterators : "; std::cin >> index;
-                std::cout << "Polynode " << index << " is Selected" << std::endl;
-                phrase.setPolynode(index);
-                std::cout << "Polynode [" << index << "] Replaced Successfully !" << std::endl;
-                break;
-            }
-            default: {
-                wrongOption = true;
-            };
-        };
-        if (wrongOption == false) {
-            std::string input;
-            while (true) {
-                std::cout << "Continue ? (Y/N) : "; std::cin >> input;
-                if (input == "y" || input == "Y") {
-                    continueChoice = true;
-                    break;
-                } else if (input == "n" || input == "N"){
-                    continueChoice = false;
-                    break;
-                } else {
-                    std::cout << "- Wrong Answer !" << std::endl;
-                }
-            }
-            if (continueChoice == true) {
-                continue;
-            } else {
-                break;
-            }
-        }
-    }
+    std::cin >> phrase;
     std::cout << std::endl;
     std::cout << "Program Terminated Successfully." << std::endl;    
 }
